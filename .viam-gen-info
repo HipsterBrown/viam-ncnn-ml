@@ -1,0 +1,13 @@
+{
+  "module_name": "ncnn-ml",
+  "namespace": "hipsterbrown",
+  "language": "python",
+  "resource_type": "service",
+  "resource_subtype": "mlmodel",
+  "model_name": "ncnn",
+  "enable_cloud_build": true,
+  "initialize_git": false,
+  "generator_version": "0.1.0",
+  "generated_on": "2025-04-21T20:04:15.33249Z",
+  "module_readme_link": "README.md"
+}

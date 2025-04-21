@@ -1,0 +1,6 @@
+
+viam-sdk[mlmodel]==0.45.0
+
+typing-extensions
+
+ncnn
