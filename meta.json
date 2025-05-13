@@ -9,7 +9,7 @@
       "api": "rdk:service:mlmodel",
       "model": "hipsterbrown:mlmodel:ncnn",
       "short_description": "Run mobile-optimized neural networds at the edge with ncnn",
-      "markdown_link": "README.md#model-hipsterbrownncnn-mlncnn"
+      "markdown_link": "README.md#model-hipsterbrownmlmodelncnn"
     }
   ],
   "applications": null,
