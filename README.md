@@ -1,18 +1,19 @@
 # Module ncnn-ml 
 
-Provide a description of the purpose of the module and any relevant information.
+Use the [ncnn](https://github.com/Tencent/ncnn/) neural network inference framework to run computer vision models optimized for mobile runtimes, such as the Raspberry Pi, NVIDIA Jetson, Android, iOS, and more.
 
-## Model hipsterbrown:ncnn-ml:ncnn
+## Model hipsterbrown:mlmodel:ncnn
 
-Provide a description of the model and any relevant information.
+Use the [ncnn](https://github.com/Tencent/ncnn/) neural network inference framework to run computer vision models
 
 ### Configuration
 The following attribute template can be used to configure this model:
 
 ```json
 {
-"attribute_1": <float>,
-"attribute_2": <string>
+    "model_name": <string>,
+    "use_gpu": <boolean>,
+    "num_threads": <integer>
 }
 ```
 
@@ -22,29 +23,22 @@ The following attributes are available for this model:
 
 | Name          | Type   | Inclusion | Description                |
 |---------------|--------|-----------|----------------------------|
-| `attribute_1` | float  | Required  | Description of attribute 1 |
-| `attribute_2` | string | Optional  | Description of attribute 2 |
+| `model_name` | string  | Required | Name of a pre-trained model from the [ncnn model zoo](https://github.com/Tencent/ncnn/blob/master/python/ncnn/model_zoo/model_zoo.py#L37-L58) supported by this module |
+| `use_gpu` | boolean  | Optional | Set this to `true` to enable the Vulkan-based GPU inferencing on the target device. |
+| `num_threads` | integer  | Optional | The number of CPU threads to use while running this service, Defaults to 2. |
+
+**Supported Models:**
+- `squeezenet` (classification)
 
 #### Example Configuration
 
 ```json
 {
-  "attribute_1": 1.0,
-  "attribute_2": "foo"
+  "model_name": "squeezenet",
+  "num_threads": 4
 }
 ```
 
-### DoCommand
+## Development
 
-If your model implements DoCommand, provide an example payload of each command that is supported and the arguments that can be used. If your model does not implement DoCommand, remove this section.
-
-#### Example DoCommand
-
-```json
-{
-  "command_name": {
-    "arg1": "foo",
-    "arg2": 1
-  }
-}
-```
+If there is a missing feature that you would like to see in this module, please create a GitHub issue with your use case.
