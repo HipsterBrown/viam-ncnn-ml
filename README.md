@@ -29,6 +29,11 @@ The following attributes are available for this model:
 
 **Supported Models:**
 - `squeezenet_ssd` (object detection)
+- `mobilenetv2_ssdlite` (object detection)
+- `mobilenetv3_ssdlite` (object detection)
+- `mobilenetv2_yolov3` (object detection)
+- `yolov4_tiny` (object detection)
+- `yolov4` (object detection)
 
 #### Example Configuration
 

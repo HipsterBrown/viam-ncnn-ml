@@ -16,7 +16,6 @@ from viam.utils import ValueTypes, dict_to_struct, struct_to_dict
 import cv2
 import ncnn
 from ncnn.model_zoo import get_model
-from ncnn.utils.objects import Detect_Object
 
 
 class Ncnn(MLModel, EasyResource):
@@ -163,6 +162,14 @@ class Ncnn(MLModel, EasyResource):
                     obj.rect.x + obj.rect.w,
                 ])
 
+            if len(results) == 0:
+                num_detections = len(self.net.class_names)
+                return {
+                    "Category": np.zeros((1, num_detections)),
+                    "Score": np.zeros((1, num_detections)),
+                    "Location": np.zeros((1, num_detections, 4)),
+                }
+
             return {
                 "Category": np.array(labels).reshape(1, -1),
                 "Score": np.array(scores).reshape(1, -1),
@@ -180,7 +187,6 @@ class Ncnn(MLModel, EasyResource):
         extra: Optional[Mapping[str, ValueTypes]] = None,
         timeout: Optional[float] = None,
     ) -> Metadata:
-        target_size = self.net.target_size if self.model_name else -1
         class_names = (
             self.net.class_names
             if self.model_name and hasattr(self.net, "class_names")
@@ -192,8 +198,7 @@ class Ncnn(MLModel, EasyResource):
         if len(class_names) > 0:
             detections_count = len(class_names)
             input_shapes, output_shapes = (
-                # {"image": (1, -1, -1, 3)},
-                {"image": (1, target_size, target_size, 3)},
+                {"image": (1, -1, -1, 3)},
                 {
                     "Location": (1, detections_count, 4),
                     "Category": (1, detections_count),
@@ -202,8 +207,7 @@ class Ncnn(MLModel, EasyResource):
             )
         else:
             input_shapes, output_shapes = (
-                # {"image": (1, -1, -1, 3)},
-                {"image": (1, target_size, target_size, 3)},
+                {"image": (1, -1, -1, 3)},
                 {"probability": (1, 1000)},
             )
 
