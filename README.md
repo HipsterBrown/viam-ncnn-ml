@@ -28,13 +28,13 @@ The following attributes are available for this model:
 | `num_threads` | integer  | Optional | The number of CPU threads to use while running this service, Defaults to 2. |
 
 **Supported Models:**
-- `squeezenet` (classification)
+- `squeezenet_ssd` (object detection)
 
 #### Example Configuration
 
 ```json
 {
-  "model_name": "squeezenet",
+  "model_name": "squeezenet_ssd",
   "num_threads": 4
 }
 ```

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import ClassVar, Dict, Mapping, Optional, Sequence
 
@@ -15,7 +16,7 @@ from viam.utils import ValueTypes, dict_to_struct, struct_to_dict
 import cv2
 import ncnn
 from ncnn.model_zoo import get_model
-# from ncnn.utils import print_topk
+from ncnn.utils.objects import Detect_Object
 
 
 class Ncnn(MLModel, EasyResource):
@@ -79,6 +80,15 @@ class Ncnn(MLModel, EasyResource):
             self.net = get_model(
                 self.model_name, num_threads=self.num_threads, use_gpu=self.use_gpu
             )
+            if hasattr(self.net, "class_names") and len(self.net.class_names) > 0:
+                viam_module_data = os.environ.get("VIAM_MODULE_DATA", "")
+                if viam_module_data:
+                    labels_dir = Path(viam_module_data)
+                    labels_dir.mkdir(parents=True, exist_ok=True)
+                    labels_path = labels_dir / "labels.txt"
+                    with open(labels_path, "w") as f:
+                        f.write("\n".join(self.net.class_names))
+                    self.label_path = str(labels_path)
 
         if self.model_path != "":
             self.net = ncnn.Net()
@@ -138,10 +148,31 @@ class Ncnn(MLModel, EasyResource):
         return cv_img
 
     def process_output(self, results):
-        topk = 5
-        indexes = np.argsort(results)[::-1][0:topk]
-        scores = results[indexes]
-        return {"probability": scores}
+        if hasattr(self.net, "class_names"):
+            labels = []
+            scores = []
+            boxes = []
+
+            for obj in results:
+                labels.append(obj.label)
+                scores.append(obj.prob)
+                boxes.append([
+                    obj.rect.y,
+                    obj.rect.x,
+                    obj.rect.y + obj.rect.h,
+                    obj.rect.x + obj.rect.w,
+                ])
+
+            return {
+                "Category": np.array(labels).reshape(1, -1),
+                "Score": np.array(scores).reshape(1, -1),
+                "Location": np.array(boxes).reshape(1, -1, 4),
+            }
+        else:
+            topk = 5
+            indexes = np.argsort(results)[::-1][0:topk]
+            scores = results[indexes]
+            return {"probability": scores}
 
     async def metadata(
         self,
@@ -150,21 +181,31 @@ class Ncnn(MLModel, EasyResource):
         timeout: Optional[float] = None,
     ) -> Metadata:
         target_size = self.net.target_size if self.model_name else -1
+        class_names = (
+            self.net.class_names
+            if self.model_name and hasattr(self.net, "class_names")
+            else []
+        )
 
         input_info, output_info = [], []
 
-        input_shapes, output_shapes = (
-            {"image": (1, target_size, target_size, 3)},
-            {"probability": (1, 1000)},
-        )
-
-        """detections output shape
-        {
-            "Location": (1, 100, 4),
-            "Category": (1, 100),
-            "Score": (1, 100)
-        }
-        """
+        if len(class_names) > 0:
+            detections_count = len(class_names)
+            input_shapes, output_shapes = (
+                # {"image": (1, -1, -1, 3)},
+                {"image": (1, target_size, target_size, 3)},
+                {
+                    "Location": (1, detections_count, 4),
+                    "Category": (1, detections_count),
+                    "Score": (1, detections_count),
+                },
+            )
+        else:
+            input_shapes, output_shapes = (
+                # {"image": (1, -1, -1, 3)},
+                {"image": (1, target_size, target_size, 3)},
+                {"probability": (1, 1000)},
+            )
 
         for input_tensor_name, shape in input_shapes.items():
             input_info.append(
@@ -177,7 +218,7 @@ class Ncnn(MLModel, EasyResource):
                     name=output_tensor_name,
                     shape=shape,
                     data_type="uint8",
-                    extra=dict_to_struct({"label": self.label_path})
+                    extra=dict_to_struct({"labels": self.label_path})
                     if self.label_path
                     else None,
                 )
